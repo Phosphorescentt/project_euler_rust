@@ -5,51 +5,46 @@ fn main() {
 
     let mut n_max: u64 = 4;
     for i in 1..=1_000_000 {
-        if let Some(len) = collatz_recurse(i, &mut found) {
-            if len > found.get(&n_max).unwrap().unwrap() {
-                n_max = i;
-                println!("n_max: {}, len: {}", n_max, len);
-            }
+        let len = collatz_recurse(i, &mut found);
+        if len > *found.get(&n_max).unwrap() {
+            n_max = i;
+            println!("n_max: {}, len: {}", n_max, len);
         }
     }
 
-    // println!("found: {:?}", found);
     println!("n_max: {}", n_max);
-    println!("len: {}", found.get(&n_max).unwrap().unwrap());
+    println!("len: {}", found.get(&n_max).unwrap());
 }
 
-fn setup_found() -> HashMap<u64, Option<u64>> {
-    let mut found: HashMap<u64, Option<u64>> = HashMap::new();
-    found.insert(1, Some(1));
-    found.insert(2, Some(2));
-    found.insert(4, Some(3));
+fn setup_found() -> HashMap<u64, u64> {
+    let mut found: HashMap<u64, u64> = HashMap::new();
+    found.insert(1, 1);
+    found.insert(2, 2);
+    found.insert(4, 3);
 
     return found;
 }
 
-fn collatz_recurse(n: u64, found: &mut HashMap<u64, Option<u64>>) -> Option<u64> {
-    if let Some(chain_length_option) = found.get(&n) {
-        return *chain_length_option;
-    } else {
-        if let Some(next_number) = collatz_calculate(n) {
-            if let Some(sub_length) = collatz_recurse(next_number, found) {
-                found.insert(n, Some(sub_length + 1));
-                return Some(sub_length + 1);
-            } else {
-                found.insert(n, None);
-                return None;
-            }
+fn collatz_recurse(n: u64, found: &mut HashMap<u64, u64>) -> u64 {
+    let l = {
+        if let Some(chain_length) = found.get(&n) {
+            *chain_length
         } else {
-            return None;
+            let next_number = collatz_calculate(n);
+            let sub_length = collatz_recurse(next_number, found);
+            sub_length + 1
         }
-    }
+    };
+
+    found.insert(n, l);
+    return l;
 }
 
-fn collatz_calculate(n: u64) -> Option<u64> {
+fn collatz_calculate(n: u64) -> u64 {
     if (n % 2) == 0 {
-        return Some(n / 2);
+        return n / 2;
     } else {
-        return Some(3 * n + 1);
+        return 3 * n + 1;
     }
 }
 
@@ -60,43 +55,37 @@ mod tests {
     #[test]
     fn n_eq_13() {
         let mut found = setup_found();
-        assert_eq!(collatz_recurse(13, &mut found), Some(10));
+        assert_eq!(collatz_recurse(13, &mut found), 10);
     }
 
     #[test]
     fn n_eq_9() {
         let mut found = setup_found();
-        assert_eq!(collatz_recurse(9, &mut found), Some(20));
-    }
-
-    #[test]
-    fn n_eq_999999() {
-        let mut found = setup_found();
-        assert_eq!(collatz_recurse(999999, &mut found), None);
+        assert_eq!(collatz_recurse(9, &mut found), 20);
     }
 
     #[test]
     fn n_eq_595800() {
         let mut found = setup_found();
-        assert_eq!(collatz_recurse(595800, &mut found), Some(297));
+        assert_eq!(collatz_recurse(595800, &mut found), 297);
     }
 
     #[test]
     fn n_eq_4() {
         let mut found = setup_found();
-        assert_eq!(collatz_recurse(4, &mut found), Some(3));
+        assert_eq!(collatz_recurse(4, &mut found), 3);
     }
 
     #[test]
     fn n_eq_10971() {
         let mut found = setup_found();
-        assert_eq!(collatz_recurse(10971, &mut found), Some(268));
+        assert_eq!(collatz_recurse(10971, &mut found), 268);
     }
 
     #[test]
     fn multiple_test() {
         let mut found = setup_found();
-        assert_eq!(collatz_recurse(9, &mut found), Some(20));
-        assert_eq!(collatz_recurse(595800, &mut found), Some(297));
+        assert_eq!(collatz_recurse(9, &mut found), 20);
+        assert_eq!(collatz_recurse(595800, &mut found), 297);
     }
 }
